@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-flask-svc
+  labels:
+    app: flask
+spec:
+  type: NodePort
+  ports:
+  - port: 5000
+    targetPort: 5000
+#   TODO: make this a variable when templating
+    nodePort: 30066
+  selector:
+    app: flask
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-flask
+  labels:
+    app: flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask
+        image: optimumcat/character_register_api:latest
+        ports:
+        - containerPort: 5000
+        env:
+          - name: DB_ENDPOINT
+            value: my-mysql-svc.default
+          - name: DB_USER
+            value: "root"
+          - name: DB_PASSWORD
+            value: "changeme"
