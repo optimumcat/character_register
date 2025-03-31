@@ -34,3 +34,12 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
+
+echo "### Setting hostname"
+TAG_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/tags/instance/Name)
+hostnamectl set-hostname "$TAG_HOSTNAME"
+
+echo "### mkdir for local persistent volume"
+if [ "$TAG_HOSTNAME" = "k8s-worker0" ]; then
+  mkdir -p /var/lib/mysql
+fi

@@ -12,7 +12,8 @@ spec:
     app: mysql
 ---
 apiVersion: apps/v1
-kind: Deployment
+# persistent storage for the db
+kind: StatefulSet
 metadata:
   name: my-mysql
   labels:
@@ -22,6 +23,8 @@ spec:
   selector:
     matchLabels:
       app: mysql
+  serviceName: "my-mysql-svc"
+  minReadySeconds: 5
   template:
     metadata:
       labels:
@@ -32,8 +35,20 @@ spec:
         image: mysql:8.0.39-debian
         ports:
         - containerPort: 3306
+        volumeMounts:
+        - name: mysqldb
+          mountPath: /var/lib/mysql
         env:
           - name: MYSQL_ROOT_PASSWORD
             value: "changeme"
           - name: MYSQL_DATABASE
             value: "character_register"
+  volumeClaimTemplates:
+  - metadata:
+      name: mysqldb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-storage"
+      resources:
+        requests:
+          storage: 1Gi

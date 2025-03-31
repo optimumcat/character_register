@@ -1,8 +1,8 @@
 # character_register
 
 Store the information about your roleplaying game characters in a database 
-with API calls. The true goal of this project is to experiment with and learn 
-more about Terraform and Kubernetes.
+with API calls. This project uses Terraform and Kubernetes to get fast and safe 
+deployments, and to serve as a reusable and portable pattern for future projects.
 
 ## Overview
 
@@ -10,8 +10,8 @@ The infrastructure is deployed to AWS using Terraform. The config creates the
 IAM resources necessary for SSH connections to the instances through Session 
 Manager.
 
-Kubeadm is used to manually deploy a Kubernetes cluster. [Calico][calico] is used for 
-networking. The workload consists of a mysql database and a Flask API.
+Kubeadm is used to manually deploy a Kubernetes cluster. [Calico][calico] is 
+used for networking. The workload consists of a mysql database and a Flask API.
 
 ## Deployment
 
@@ -40,9 +40,10 @@ kubeadm token create --print-join-command
 ```shell
  sudo kubeadm join --token <token> <control-plane-host>:<control-plane-port> --discovery-token-ca-cert-hash sha256:<hash>
  ```
-7. On the k8s_master instance, `kubectl apply` the `mysql.yaml` manifest
-8. Verify the service is running
-9. `kubectl apply` the `flask.yaml` manifest
+7. On the k8s_master instance, `kubectl apply` the `pv.yaml` manifest
+8. `kubectl apply` the `mysql.yaml` manifest
+9. Verify the service is running
+10. `kubectl apply` the `flask.yaml` manifest
 
 ## Usage
 

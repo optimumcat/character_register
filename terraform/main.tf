@@ -129,6 +129,8 @@ resource "aws_vpc_security_group_ingress_rule" "k8s_api_workers" {
   description                  = "K8s API server on master node from worker nodes"
 }
 
+# Typha is like a central proxy between the API server and Felix
+# Felix is Calicos replacement for kube-proxy
 resource "aws_vpc_security_group_ingress_rule" "k8s_master_calico_typha" {
   security_group_id            = aws_security_group.k8s_master.id
   referenced_security_group_id = aws_security_group.k8s_worker.id
@@ -191,6 +193,10 @@ resource "aws_vpc_security_group_ingress_rule" "k8s_worker_flask" {
   description                  = "flask"
 }
 
+# Sounds crazy from security perspective but this is best practice per AWS and
+# is alot easier than sorting it all out with SGs
+# Seems NetworkPolicies are used to further restrict traffic - consider doing
+# that to improve security at the k8s level
 resource "aws_vpc_security_group_ingress_rule" "k8s_worker_internode" {
   security_group_id            = aws_security_group.k8s_worker.id
   referenced_security_group_id = aws_security_group.k8s_worker.id
@@ -255,7 +261,12 @@ resource "aws_instance" "k8s_worker" {
   ]
 
   tags = {
-    Name = "k8s_worker${count.index}"
+    Name = "k8s-worker${count.index}"
+  }
+
+  metadata_options {
+    # make the instance tags available to metadata
+    instance_metadata_tags = "enabled"
   }
 
   user_data = filebase64("userdata_base.tpl")
@@ -275,15 +286,24 @@ resource "aws_instance" "k8s_master" {
   ]
 
   tags = {
-    Name = "k8s_master"
+    Name = "k8s-master"
   }
 
+  metadata_options {
+    instance_metadata_tags = "enabled"
+  }
+
+  # combines the base script for all nodes with the script just for the master
+  # The "%s%s" converts both files into strings and concatenates em
   user_data = base64encode(format("%s%s", file("userdata_base.tpl"), templatefile("userdata_master.tpl", { pod_network_cidr = var.pod_network_cidr })))
 }
 
 ########################
 # Load Balancer
 ########################
+
+# TODO: Look into creating the LBs with a k8s addon like aws-load-balancer-controller
+# so LBs can be managed w/ k8s
 
 resource "aws_security_group" "nlb_flask" {
   vpc_id = aws_vpc.main.id

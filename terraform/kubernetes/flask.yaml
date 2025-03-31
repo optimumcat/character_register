@@ -37,6 +37,7 @@ spec:
         - containerPort: 5000
         env:
           - name: DB_ENDPOINT
+            # change this to a specifi namespace
             value: my-mysql-svc.default
           - name: DB_USER
             value: "root"

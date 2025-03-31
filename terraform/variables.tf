@@ -38,3 +38,12 @@ variable "pod_network_cidr" {
   type        = string
   default     = "192.168.0.0/16"
 }
+
+# sensitive vars - won't show in the output but will be saved in the state
+# marking as ephemeral will prevent it from being in the state
+# Maybe use for creating SecureString in SSM parameter store
+# variable "testvarsecret" {
+#   description = "testsecret"
+#   type        = string
+#   sensitive = true
+# }
